@@ -85,7 +85,7 @@ namespace BulkyBook.Areas.Admin.Controllers
                     {
                         files[0].CopyTo(filesStreams);
                     }
-                    productVM.Product.ImageUrl = @"\images\products" + fileName + extension;
+                    productVM.Product.ImageUrl = @"\images\products\" + fileName + extension;
                 }
                 else
                 {
