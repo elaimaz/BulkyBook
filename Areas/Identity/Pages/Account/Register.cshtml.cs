@@ -179,7 +179,7 @@ namespace BulkyBook.Areas.Identity.Pages.Account
                         else
                         {
                             //Admin is regestering a new user
-                            return RedirectToAction("Index", "Users", new { Area = "Admin"});
+                            return RedirectToAction("Index", "User", new { Area = "Admin"});
                         }
                     }
                 }
