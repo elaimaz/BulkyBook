@@ -26,7 +26,7 @@ function loadDataTable() {
                         //User is currently locked
                         return `
                             <div class="text-centered">
-                                <a onclick=LockUnlock('${data.id}') class="btn btn-danger text-white" style="cursor:pointer">
+                                <a onclick=LockUnlock('${data.id}') class="btn btn-danger text-white" style="cursor:pointer; width:100px">
                                     <i class="fas fa-lock-open"></i> Unlock
                                 </a>
                             </div>
@@ -34,7 +34,7 @@ function loadDataTable() {
                     } else {
                         return `
                             <div class="text-centered">
-                                <a onclick=LockUnlock('${data.id}') class="btn btn-success text-white" style="cursor:pointer">
+                                <a onclick=LockUnlock('${data.id}') class="btn btn-success text-white" style="cursor:pointer; width:100px">
                                     <i class="fas fa-lock"></i> Lock
                                 </a>
                             </div>
@@ -43,5 +43,23 @@ function loadDataTable() {
                 }, "width": "25%"
             }
         ]
+    });
+}
+
+function LockUnlock(id) {
+    $.ajax({
+        type: "POST",
+        url: '/Admin/User/LockUnlock',
+        data: JSON.stringify(id),
+        contentType: "application/json",
+        success: function (data) {
+            if (data.success) {
+                toastr.success(data.message);
+                dataTable.ajax.reload();
+            }
+            else {
+                toastr.error(data.message);
+            }
+        }
     });
 }
