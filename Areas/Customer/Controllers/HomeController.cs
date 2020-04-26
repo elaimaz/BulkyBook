@@ -28,6 +28,13 @@ namespace BulkyBook.Areas.Customer.Controllers
         public IActionResult Index()
         {
             IEnumerable<Product> productList = _unitOfWork.Product.GetAll(includeProperties: "Category,CoverType");
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim != null)
+            {
+                var count = _unitOfWork.ShopingCart.GetAll(c => c.ApplicationUserId==claim.Value).ToList().Count();
+                HttpContext.Session.SetInt32(SD.ssShopingCart, count);
+            }
             return View(productList);
         }
 
