@@ -8,6 +8,7 @@ using System.Security.Claims;
 
 namespace BulkyBook.Areas.Customer.Controllers
 {
+    [Area("Customer")]
     public class CartController : Controller
     {
         private readonly IUnityOfWork _unitOfWork;
