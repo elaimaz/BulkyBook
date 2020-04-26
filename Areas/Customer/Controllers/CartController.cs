@@ -1,10 +1,12 @@
 ﻿using BulkyBook.DataAccess.Data.Repository.IRepository;
 using BulkyBook.Models.ViewModels;
 using BulkyBook.Utility;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -36,10 +38,10 @@ namespace BulkyBook.Areas.Customer.Controllers
             shoppingCartVM = new ShoppingCartVM()
             {
                 OrderHeader = new Models.OrderHeader(),
-                ListCart = _unitOfWork.ShopingCart.GetAll(u => u.ApplicationUserId == claim.Value, includeProperties:"Product")
+                ListCart = _unitOfWork.ShopingCart.GetAll(u => u.ApplicationUserId == claim.Value, includeProperties: "Product")
             };
             shoppingCartVM.OrderHeader.orderTotal = 0;
-            shoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(u => u.Id == claim.Value, includeProperties:"Company");
+            shoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(u => u.Id == claim.Value, includeProperties: "Company");
 
             foreach (var list in shoppingCartVM.ListCart)
             {
@@ -84,10 +86,44 @@ namespace BulkyBook.Areas.Customer.Controllers
 
         public IActionResult Plus(int cartId)
         {
-            var cart = _unitOfWork.ShopingCart.GetFirstOrDefault(c => c.Id == cartId, includeProperties:"Product");
+            var cart = _unitOfWork.ShopingCart.GetFirstOrDefault(c => c.Id == cartId, includeProperties: "Product");
             cart.Count += 1;
             cart.Price = SD.GetPriceBasedOnQuantity(cart.Count, cart.Product.Price, cart.Product.Price50, cart.Product.Price100);
             _unitOfWork.Save();
+            return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult Minus(int cartId)
+        {
+            var cart = _unitOfWork.ShopingCart.GetFirstOrDefault(c => c.Id == cartId, includeProperties: "Product");
+
+            if (cart.Count == 1)
+            {
+                var cnt = _unitOfWork.ShopingCart.GetAll(u => u.ApplicationUserId == cart.ApplicationUserId).ToList().Count;
+                _unitOfWork.ShopingCart.Remove(cart);
+                _unitOfWork.Save();
+                HttpContext.Session.SetInt32(SD.ssShopingCart, cnt - 1);
+            }
+            else
+            {
+                cart.Count -= 1;
+                cart.Price = SD.GetPriceBasedOnQuantity(cart.Count, cart.Product.Price, cart.Product.Price50, cart.Product.Price100);
+                _unitOfWork.Save();
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult Remove(int cartId)
+        {
+            var cart = _unitOfWork.ShopingCart.GetFirstOrDefault(c => c.Id == cartId, includeProperties: "Product");
+
+
+            var cnt = _unitOfWork.ShopingCart.GetAll(u => u.ApplicationUserId == cart.ApplicationUserId).ToList().Count;
+            _unitOfWork.ShopingCart.Remove(cart);
+            _unitOfWork.Save();
+            HttpContext.Session.SetInt32(SD.ssShopingCart, cnt - 1);
+
+
             return RedirectToAction(nameof(Index));
         }
     }
