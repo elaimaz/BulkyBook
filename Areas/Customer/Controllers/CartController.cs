@@ -43,13 +43,13 @@ namespace BulkyBook.Areas.Customer.Controllers
                 OrderHeader = new Models.OrderHeader(),
                 ListCart = _unitOfWork.ShopingCart.GetAll(u => u.ApplicationUserId == claim.Value, includeProperties: "Product")
             };
-            ShoppingCartVM.OrderHeader.orderTotal = 0;
+            ShoppingCartVM.OrderHeader.OrderTotal = 0;
             ShoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(u => u.Id == claim.Value, includeProperties: "Company");
 
             foreach (var list in ShoppingCartVM.ListCart)
             {
                 list.Price = SD.GetPriceBasedOnQuantity(list.Count, list.Product.Price, list.Product.Price50, list.Product.Price100);
-                ShoppingCartVM.OrderHeader.orderTotal += (list.Price * list.Count);
+                ShoppingCartVM.OrderHeader.OrderTotal += (list.Price * list.Count);
                 list.Product.Description = SD.ConvertToRawHtml(list.Product.Description);
                 if (list.Product.Description.Length > 100)
                 {
@@ -144,7 +144,7 @@ namespace BulkyBook.Areas.Customer.Controllers
             foreach (var list in ShoppingCartVM.ListCart)
             {
                 list.Price = SD.GetPriceBasedOnQuantity(list.Count, list.Product.Price, list.Product.Price50, list.Product.Price100);
-                ShoppingCartVM.OrderHeader.orderTotal += (list.Price * list.Count);
+                ShoppingCartVM.OrderHeader.OrderTotal += (list.Price * list.Count);
             }
             ShoppingCartVM.OrderHeader.Name = ShoppingCartVM.OrderHeader.ApplicationUser.Name;
             ShoppingCartVM.OrderHeader.PhoneNumber = ShoppingCartVM.OrderHeader.ApplicationUser.PhoneNumber;
@@ -174,7 +174,7 @@ namespace BulkyBook.Areas.Customer.Controllers
             ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
             ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
             ShoppingCartVM.OrderHeader.ApplicarionUserId = int.Parse(claim.Value);
-            ShoppingCartVM.OrderHeader.orderDate = DateTime.Now;
+            ShoppingCartVM.OrderHeader.OrderDate = DateTime.Now;
 
             _unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
             _unitOfWork.Save();
@@ -189,7 +189,7 @@ namespace BulkyBook.Areas.Customer.Controllers
                     Price = item.Price,
                     Count = item.Count
                 };
-                ShoppingCartVM.OrderHeader.orderTotal += orderDetails.Count * orderDetails.Price;
+                ShoppingCartVM.OrderHeader.OrderTotal += orderDetails.Count * orderDetails.Price;
                 _unitOfWork.OrderDetail.Add(orderDetails);
                 _unitOfWork.Save();
             }
