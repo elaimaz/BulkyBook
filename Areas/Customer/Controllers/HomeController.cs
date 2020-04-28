@@ -32,7 +32,7 @@ namespace BulkyBook.Areas.Customer.Controllers
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
             if (claim != null)
             {
-                var count = _unitOfWork.ShopingCart.GetAll(c => c.ApplicationUserId==claim.Value).ToList().Count();
+                var count = _unitOfWork.ShoppingCart.GetAll(c => c.ApplicationUserId==claim.Value).ToList().Count();
                 HttpContext.Session.SetInt32(SD.ssShopingCart, count);
             }
             return View(productList);
@@ -66,21 +66,23 @@ namespace BulkyBook.Areas.Customer.Controllers
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                 cartObject.ApplicationUserId = claim.Value;
-                ShoppingCart cartFromDb = _unitOfWork.ShopingCart.GetFirstOrDefault(u => u.ApplicationUserId == cartObject.ApplicationUserId && u.ProductId == cartObject.ProductId, includeProperties: "Product");
+
+                ShoppingCart cartFromDb = _unitOfWork.ShoppingCart.GetFirstOrDefault(
+                    u => u.ApplicationUserId == cartObject.ApplicationUserId && u.ProductId == cartObject.ProductId, includeProperties: "Product");
 
                 if (cartFromDb == null)
                 {
                     //no records exists in database for that product for that user
-                    _unitOfWork.ShopingCart.Add(cartObject);
+                    _unitOfWork.ShoppingCart.Add(cartObject);
                 }
                 else
                 {
                     cartFromDb.Count += cartObject.Count;
-                    _unitOfWork.ShopingCart.Update(cartFromDb);
+                    _unitOfWork.ShoppingCart.Update(cartFromDb);
                 }
                 _unitOfWork.Save();
 
-                var count = _unitOfWork.ShopingCart.GetAll(c => c.ApplicationUserId==cartObject.ApplicationUserId).ToList().Count();
+                var count = _unitOfWork.ShoppingCart.GetAll(c => c.ApplicationUserId==cartObject.ApplicationUserId).ToList().Count();
 
                 //HttpContext.Session.SetObject(SD.ssShopingCart, cartObject);
                 HttpContext.Session.SetInt32(SD.ssShopingCart, count);
