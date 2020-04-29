@@ -92,7 +92,7 @@ namespace BulkyBook.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     var user = _unitOfWork.ApplicationUser.GetFirstOrDefault(u => u.Email == Input.Email);
-                    int count = _unitOfWork.ShopingCart.GetAll(u => u.ApplicationUserId == user.Id).Count();
+                    int count = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == user.Id).Count();
                     HttpContext.Session.SetInt32(SD.ssShopingCart, count);
 
                     _logger.LogInformation("User logged in.");
