@@ -79,7 +79,7 @@ namespace BulkyBook.Areas.Customer.Controllers
             var callbackUrl = Url.Page(
                 "/Account/ConfirmEmail",
                 pageHandler: null,
-                values: new { area = "Identity", userId = user.Id, code = code },
+                values: new { area = "Identity", userId = user.Id },
                 protocol: Request.Scheme);
 
             await _emailSender.SendEmailAsync(user.Email, "Confirm your email",
@@ -179,7 +179,6 @@ namespace BulkyBook.Areas.Customer.Controllers
             _unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
             _unitOfWork.Save();
 
-            List<OrderDetail> orderDetailsList = new List<OrderDetail>();
             foreach (var item in ShoppingCartVM.ListCart)
             {
                 item.Price = SD.GetPriceBasedOnQuantity(item.Count, item.Product.Price, item.Product.Price50, item.Product.Price100);
