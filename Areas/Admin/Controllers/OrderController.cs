@@ -34,13 +34,51 @@ namespace BulkyBook.Areas.Admin.Controllers
         {
             OrderVM = new OrderDetailsVM()
             {
-                OrderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id==id, includeProperties:"ApplicationUser"),
-                OrderDetail = _unitOfWork.OrderDetail.GetAll(o => o.Id==id, includeProperties:"Product")
+                OrderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id, includeProperties: "ApplicationUser"),
+                OrderDetail = _unitOfWork.OrderDetail.GetAll(o => o.Id == id, includeProperties: "Product")
             };
             return View(OrderVM);
         }
 
-        [Authorize(Roles = SD.Role_Admin+","+SD.Role_Employee)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ActionName("Details")]
+        public IActionResult Details(string stripeToken)
+        {
+            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == OrderVM.OrderHeader.Id, includeProperties: "ApplicationUser");
+            if (stripeToken != null)
+            {
+                //process payment
+                var options = new ChargeCreateOptions
+                {
+                    Amount = Convert.ToInt32(orderHeader.OrderTotal * 100),
+                    Currency = "usd",
+                    Description = "Order ID: " + orderHeader.Id,
+                    Source = stripeToken
+                };
+
+                var service = new ChargeService();
+                Charge charge = service.Create(options);
+
+                if (charge.BalanceTransactionId == null)
+                {
+                    orderHeader.PaymentStatus = SD.PaymentStatusRejected;
+                }
+                else
+                {
+                    orderHeader.TransactionId = charge.BalanceTransactionId;
+                }
+                if (charge.Status.ToLower() == "succeeded")
+                {
+                    orderHeader.PaymentStatus = SD.PaymentStatusApproved;
+                    orderHeader.PaymentDate = DateTime.Now;
+                }
+                _unitOfWork.Save();
+            }
+            return RedirectToAction("Details", "Order", new { id = orderHeader.Id });
+        }
+
+        [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
         public IActionResult StartProcessing(int id)
         {
             OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id);
@@ -65,10 +103,10 @@ namespace BulkyBook.Areas.Admin.Controllers
         [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
         public IActionResult CancelOrder(int id)
         {
-            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id==id);
+            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id);
             if (orderHeader.PaymentStatus == SD.StatusApproved)
             {
-                var options = new RefundCreateOptions 
+                var options = new RefundCreateOptions
                 {
                     Amount = Convert.ToInt32(orderHeader.OrderTotal * 100),
                     Reason = RefundReasons.RequestedByCustomer,
@@ -115,7 +153,7 @@ namespace BulkyBook.Areas.Admin.Controllers
                     orderHeaderList = orderHeaderList.Where(o => o.PaymentStatus == SD.PaymentStatusDelayedPayment);
                     break;
                 case "inprocess":
-                    orderHeaderList = orderHeaderList.Where(o => o.OrderStatus == SD.StatusApproved || o.OrderStatus == SD.StatusInProcess || o.OrderStatus==SD.StatusPending);
+                    orderHeaderList = orderHeaderList.Where(o => o.OrderStatus == SD.StatusApproved || o.OrderStatus == SD.StatusInProcess || o.OrderStatus == SD.StatusPending);
                     break;
                 case "completed":
                     orderHeaderList = orderHeaderList.Where(o => o.PaymentStatus == SD.StatusShipped);
@@ -127,7 +165,7 @@ namespace BulkyBook.Areas.Admin.Controllers
                     break;
             }
 
-            return Json(new { data = orderHeaderList});
+            return Json(new { data = orderHeaderList });
         }
 
         #endregion
