@@ -1,8 +1,10 @@
 ﻿using BulkyBook.DataAccess.Data.Repository.IRepository;
 using BulkyBook.Models;
+using BulkyBook.Models.ViewModels;
 using BulkyBook.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BulkyBook.Areas.Admin.Controllers
@@ -18,9 +20,23 @@ namespace BulkyBook.Areas.Admin.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(int productPage = 1)
         {
-            return View();
+            CategoryVM categoryVM = new CategoryVM()
+            {
+                Categories = await _unitOfWork.Category.GetAllAsync()
+            };
+            var count = categoryVM.Categories.Count();
+            categoryVM.Categories = categoryVM.Categories.OrderBy(p => p.Name).Skip((productPage - 1) * 2).Take(2).ToList();
+
+            categoryVM.PaginInfo = new PaginInfo 
+            {
+                CurrentPage = productPage,
+                ItemPerPage = 2,
+                TotalItem = count,
+                UrlParam = "/Admin/Category/Index?productPage=:"
+            };
+            return View(categoryVM);
         }
 
         public async Task<IActionResult> Upsert(int? id)
