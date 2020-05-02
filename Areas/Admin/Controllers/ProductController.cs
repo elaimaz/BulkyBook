@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BulkyBook.Areas.Admin.Controllers
 {
@@ -31,12 +33,13 @@ namespace BulkyBook.Areas.Admin.Controllers
             return View();
         }
 
-        public IActionResult Upsert(int ?id)
+        public async Task<IActionResult> Upsert(int ?id)
         {
+            IEnumerable<Category> catList = await _unitOfWork.Category.GetAllAsync();
             ProductVM productVM = new ProductVM()
             {
                 Product = new Product(),
-                CategoryList = _unitOfWork.Category.GetAll().Select(i => new SelectListItem
+                CategoryList = catList.Select(i => new SelectListItem
                 {
                     Text = i.Name,
                     Value = i.Id.ToString()
@@ -63,7 +66,7 @@ namespace BulkyBook.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Upsert(ProductVM productVM)
+        public async Task<IActionResult> Upsert(ProductVM productVM)
         {
             if (ModelState.IsValid)
             {
@@ -113,7 +116,8 @@ namespace BulkyBook.Areas.Admin.Controllers
             }
             else
             {
-                productVM.CategoryList = _unitOfWork.Category.GetAll().Select(i => new SelectListItem
+                IEnumerable<Category> catList = await _unitOfWork.Category.GetAllAsync();
+                productVM.CategoryList = catList.Select(i => new SelectListItem
                 {
                     Text = i.Name,
                     Value = i.Id.ToString()
