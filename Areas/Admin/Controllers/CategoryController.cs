@@ -94,7 +94,7 @@ namespace BulkyBook.Areas.Admin.Controllers
                 TempData["Error"] = "Error Deleting Category";
                 return Json(new { success = false, message = "Error while deleting" });
             }
-            await _unitOfWork.Category.RemoveAsync(objFromDb);
+            await _unitOfWork.Category.Remove(objFromDb);
             _unitOfWork.Save();
             TempData["Success"] = "Category Succefully Deleted";
             return Json(new { success = true, message = "Delete Successful" });
