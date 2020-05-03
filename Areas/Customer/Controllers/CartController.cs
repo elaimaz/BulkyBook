@@ -26,7 +26,7 @@ namespace BulkyBook.Areas.Customer.Controllers
         private readonly IUnityOfWork _unitOfWork;
         private readonly IEmailSender _emailSender;
 
-        private TwilioSettings _twilioOptions { get; set; }
+        private TwilioSettings TwilioOptions { get; set; }
         private readonly UserManager<IdentityUser> _userManager;
 
         [BindProperty]
@@ -37,7 +37,7 @@ namespace BulkyBook.Areas.Customer.Controllers
             _unitOfWork = unitOfWork;
             _emailSender = emailSender;
             _userManager = userManager;
-            _twilioOptions = twilioOptions.Value;
+            TwilioOptions = twilioOptions.Value;
         }
 
         public IActionResult Index()
@@ -248,18 +248,18 @@ namespace BulkyBook.Areas.Customer.Controllers
         public IActionResult OrderConfirmation(int id)
         {
             OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id);
-            TwilioClient.Init(_twilioOptions.AccountSid, _twilioOptions.AuthToken);
+            TwilioClient.Init(TwilioOptions.AccountSid, TwilioOptions.AuthToken);
             try
             {
                 var message = MessageResource.Create(
                     body: "Order Placed on Bulky Book. Your Order ID: " + id,
-                    from: new Twilio.Types.PhoneNumber(_twilioOptions.PhoneNumber),
+                    from: new Twilio.Types.PhoneNumber(TwilioOptions.PhoneNumber),
                     to: new Twilio.Types.PhoneNumber(orderHeader.PhoneNumber)
                     );
             }
             catch(Exception ex)
             {
-
+                return View(ex);
             }
             return View(id);
         }
